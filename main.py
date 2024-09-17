@@ -15,9 +15,14 @@ Created on Fri Sep  6 16:06:37 2024
 """
 
 from pathlib import Path
-from src.data_manipulation import create_dataset,combine_datasets
+from src.data_manipulation import create_dataset,combine_datasets,convert_to_mel
 from src.classifiers import train_svm,train_mlp,evaluate
 from sklearn.model_selection import train_test_split
+from scipy.signal import medfilt
+from src.config import SAMPLING_RATE,FILTER_SIZE
+from audio import extract_clean_speech_intervals,extract_clean_speech
+import librosa
+import soundfile as sf
 
 
 if __name__=="__main__":
@@ -35,3 +40,10 @@ if __name__=="__main__":
     evaluate(X_test,Y_test,mlp,"MLP")
     
 
+    audio,_ = librosa.load('data/NoisySpeech_training/noisy1_SNRdb_0.0_clnsp1.wav', sr=SAMPLING_RATE)
+    mel_noisyspeech = convert_to_mel(audio)
+    predictions = svm.predict(mel_noisyspeech)
+    predictions = medfilt(predictions, kernel_size=FILTER_SIZE) 
+    cleanspeech_intervals = extract_clean_speech_intervals(audio,predictions)
+    cleanspeech = extract_clean_speech(cleanspeech_intervals,audio)
+    sf.write('reconstructed_speech.wav', cleanspeech, SAMPLING_RATE)

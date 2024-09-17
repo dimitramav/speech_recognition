@@ -9,7 +9,6 @@ from sklearn.svm import SVC
 from sklearn.neural_network import MLPClassifier
 from sklearn import metrics
 
-
 def train_svm(X_train, Y_train):
     #rbf kernel is used for complex data with no clear decision boundaries
     svm = SVC(kernel='rbf')

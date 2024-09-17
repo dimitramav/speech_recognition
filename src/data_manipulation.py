@@ -8,14 +8,18 @@ Created on Wed Sep 11 11:36:58 2024
 import librosa
 import librosa.display
 import numpy as np
-
-SAMPLING_RATE = 16000
-N_FFT = 2048  #number of windows
-HOP_LENGTH = N_FFT//2 #step size
-N_MELS = 128  #number of Mel bands
+from src.config import SAMPLING_RATE,N_FFT,HOP_LENGTH,N_MELS
 
 
-
+def convert_to_mel(audio):
+    # Convert the waveform to a Mel spectrogram
+    mel_spectrogram = librosa.feature.melspectrogram(y=audio, sr=SAMPLING_RATE, n_fft=N_FFT, hop_length=HOP_LENGTH, n_mels=N_MELS)
+    # Transpose the spectrogram to have the shape (timesteps, n_mels)
+    # Rows now represent time frames
+    # Columns represent Mel frequency bins
+    mel_spectrogram = mel_spectrogram.T 
+    return mel_spectrogram
+    
 def create_dataset(folder_path,label):
     file_count=0
     # List files in the folder
@@ -23,13 +27,8 @@ def create_dataset(folder_path,label):
     target_labels = []
     for file_path in folder_path.iterdir():
         if file_path.is_file() and file_path.suffix == '.wav':
-            array,sampling_rate = librosa.load(file_path, sr=SAMPLING_RATE)
-            # Convert the waveform to a Mel spectrogram
-            mel_spectrogram = librosa.feature.melspectrogram(y=array, sr=SAMPLING_RATE, n_fft=N_FFT, hop_length=HOP_LENGTH, n_mels=N_MELS)
-            # Transpose the spectrogram to have the shape (timesteps, n_mels)
-            # Rows now represent time frames
-            # Columns represent Mel frequency bins
-            mel_spectrogram = mel_spectrogram.T
+            audio,sampling_rate = librosa.load(file_path, sr=SAMPLING_RATE)
+            mel_spectrogram = convert_to_mel(audio)
             audio_time_fragments.append(mel_spectrogram)
             target_labels.append(label)
             # Increment the file count and break if five files have been read
