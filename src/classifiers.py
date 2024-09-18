@@ -8,10 +8,10 @@ Created on Mon Sep 16 21:17:35 2024
 from sklearn.svm import SVC
 from sklearn.neural_network import MLPClassifier
 from sklearn import metrics
-from src.GRUclassifier import GRUclassifier
-import torch
-import torch.nn as nn
-import torch.optim as optim
+#from src.GRUclassifier import GRUclassifier
+#import torch
+#import torch.nn as nn
+#import torch.optim as optim
 import numpy as np
 
 def train_svm(X_train, Y_train):
@@ -24,7 +24,7 @@ def train_mlp(X_train,Y_train):
     mlp = MLPClassifier(hidden_layer_sizes=(150,100,50), max_iter=300,activation = 'relu',solver='adam',random_state=1)
     mlp.fit(X_train, Y_train)
     return mlp
-
+"""
 def train_rnn(X_train,Y_train):
     #batching my data to one single batch
     data_tensor = torch.from_numpy(X_train).float()
@@ -69,7 +69,7 @@ def rnn_evaluate(X_test,Y_test, rnn):
     correct_predictions = (predicted_classes == test_labels).float()
     accuracy = correct_predictions.sum() / test_labels.size(0)
     print(f'RNN Accuracy: {accuracy.item() * 100:.2f}%')
-
+"""
 
 def evaluate(X_test,Y_test,classifier,label):
     Y_pred = classifier.predict(X_test)
