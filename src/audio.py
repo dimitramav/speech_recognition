@@ -45,7 +45,7 @@ def extract_clean_speech(intervals,audio):
     return extracted_speech, np.mean(speaker_frequencies)
 
 def calculate_speaker_frequency(segment):
-    pitches = detect_pitch(segment)
+    pitches = extract_pitches(segment)
     # Remove zero values (pitches corresponding to silence)
     non_zero_pitches = pitches[pitches > 0]
     # Return the mean of the non-zero pitches if any, else return 0
@@ -55,7 +55,7 @@ def calculate_speaker_frequency(segment):
         return 0
         
 
-def detect_pitch(y):
+def extract_pitches(y):
     pitches, magnitudes = librosa.core.piptrack(y=y, sr=SAMPLING_RATE, fmin=F_MIN, fmax=F_MAX)
     # get indexes of the maximum value in each time slice
     max_indexes = np.argmax(magnitudes, axis=0)
