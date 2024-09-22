@@ -1,6 +1,6 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """
+!/usr/bin/env python3
+-*- coding: utf-8 -*-
 Created on Fri Sep  6 16:06:37 2024
 
 @author: dimitra
@@ -16,24 +16,15 @@ Created on Fri Sep  6 16:06:37 2024
 
 from pathlib import Path
 from src.data_manipulation import create_dataset,combine_datasets,convert_to_mel
-from src.classifiers import train_svm,train_mlp,evaluate#,train_rnn,rnn_evaluate
+from src.classifiers import train_svm,train_mlp,evaluate,train_rnn, train_transformer, to_tensor
 from sklearn.model_selection import train_test_split
 from scipy.signal import medfilt
 from src.config import SAMPLING_RATE,FILTER_SIZE
 from src.audio import extract_clean_speech_intervals,extract_clean_speech
 import librosa
 import soundfile as sf
-#import torch
+import torch
 
-"""
-def rnn_predict(mel_noisyspeech):
-    data_tensor = torch.from_numpy(mel_noisyspeech)
-    data_tensor = data_tensor.unsqueeze(0)
-    predictions = rnn(data_tensor)
-    predicted_classes = (predictions > 0.5).float()
-    # rounded_predictions = medfilt(predicted_classes, kernel_size=FILTER_SIZE)
-    return predicted_classes
-"""
 
 if __name__=="__main__":
     X_clean_data, Y_clean_data = create_dataset(Path('data/CleanSpeech_training/'),1)
@@ -57,12 +48,18 @@ if __name__=="__main__":
     if(model == '3'):
         #RNN
         rnn = train_rnn(X_train, Y_train)
-        rnn_evaluate(X_test,Y_test, rnn)
+        rnn.evaluate(X_test,Y_test)
 
+    if(model == '4'):
+        #Transformer
+        transformer = train_transformer(X_train, Y_train)
+        test_data,test_labels= to_tensor(X_test, Y_test)
+        transformer.evaluate(test_data, test_labels)
+        
     if(model != '3'):
         audio,_ = librosa.load('data/NoisySpeech_training/noisy2_SNRdb_0.0_clnsp2.wav', sr=SAMPLING_RATE)
         mel_noisyspeech = convert_to_mel(audio)
-        predictions = svm.predict(mel_noisyspeech)
+        predictions = transformer.predict(mel_noisyspeech)
         predictions = medfilt(predictions, kernel_size=FILTER_SIZE) 
         cleanspeech_intervals = extract_clean_speech_intervals(audio,predictions)
         cleanspeech,fundamental_frequency = extract_clean_speech(cleanspeech_intervals,audio)
@@ -71,8 +68,7 @@ if __name__=="__main__":
     else:
         audio,_ = librosa.load('data/NoisySpeech_training/noisy10_SNRdb_0.0_clnsp10.wav', sr=SAMPLING_RATE)
         mel_noisyspeech = convert_to_mel(audio)
-        predictions= rnn_predict(mel_noisyspeech)
-        # predictions = medfilt(predictions, kernel_size=FILTER_SIZE) 
+        predictions= rnn.predict(mel_noisyspeech)
         cleanspeech_intervals = extract_clean_speech_intervals(audio,predictions)
         cleanspeech = extract_clean_speech(cleanspeech_intervals,audio)
         sf.write('reconstructed_speech_rnn.wav', cleanspeech, SAMPLING_RATE)
