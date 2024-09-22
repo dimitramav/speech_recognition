@@ -83,27 +83,21 @@ class Transformer(nn.Module):
     def evaluate(self, test_data, test_labels):
         self.eval()
         
-        # Lists to store predictions and true labels
-        all_preds = []
-        all_labels = []
-        
         padded_test_data = self.pad_sequence(test_data, 5701)
         # padded_test_data = padded_test_data.unsqueeze(0)
         predicted = self(padded_test_data)
-        # Get predicted class (index of max logit)
-        preds = torch.argmax(predicted, dim=1)
         
-        # Compare predictions with actual labels
-        all_preds.extend(preds.cpu().numpy())
-        all_labels.extend(test_labels.cpu().numpy())
-
-        # Convert lists to arrays for evaluation
-        all_preds = np.array(all_preds)
-        all_labels = np.array(all_labels)
-        accuracy = accuracy_score(all_labels, all_preds)       
+        truncated_preds = self.truncate_predictions(predicted, target_length=1426)        # Get predicted class (index of max logit)
+        preds = torch.argmax(truncated_preds, dim=1)
+        
+        accuracy = accuracy_score(preds, test_labels)       
         
         print(f"Accuracy: {accuracy:.4f}")        
 
     def pad_sequence(self,sequence, max_len):
       padding_length = max_len - len(sequence[0])
       return nn.functional.pad(sequence, (0,0,0, padding_length))
+  
+    
+    def truncate_predictions(self,preds, target_length=1426):
+        return preds[:target_length]
