@@ -54,9 +54,9 @@ if __name__=="__main__":
         #Transformer
         transformer = train_transformer(X_train, Y_train)
         test_data,test_labels= to_tensor(X_test, Y_test)
-        transformer.evaluate(test_data, test_labels)
+        transformer.evaluate(test_data, test_labels, X_train.shape[0])
         
-    if(model != '3'):
+    if(model == '1' or model == '2'):
         audio,_ = librosa.load('data/NoisySpeech_training/noisy2_SNRdb_0.0_clnsp2.wav', sr=SAMPLING_RATE)
         mel_noisyspeech = convert_to_mel(audio)
         predictions = transformer.predict(mel_noisyspeech)
@@ -66,10 +66,12 @@ if __name__=="__main__":
         print(f'Fundamental Frequency: {fundamental_frequency} Hz')
         sf.write('reconstructed_speech.wav', cleanspeech, SAMPLING_RATE)
     else:
-        audio,_ = librosa.load('data/NoisySpeech_training/noisy10_SNRdb_0.0_clnsp10.wav', sr=SAMPLING_RATE)
+        audio,_ = librosa.load('data/NoisySpeech_training/noisy11_SNRdb_0.0_clnsp11.wav', sr=SAMPLING_RATE)
         mel_noisyspeech = convert_to_mel(audio)
-        predictions= rnn.predict(mel_noisyspeech)
+        data_tensor = torch.from_numpy(mel_noisyspeech).float()
+        data_tensor = data_tensor.unsqueeze(0)        
+        predictions= transformer.predict(data_tensor, X_train.shape[0])
         cleanspeech_intervals = extract_clean_speech_intervals(audio,predictions)
         cleanspeech = extract_clean_speech(cleanspeech_intervals,audio)
-        sf.write('reconstructed_speech_rnn.wav', cleanspeech, SAMPLING_RATE)
+        sf.write('reconstructed_speech_transformer.wav', cleanspeech, SAMPLING_RATE)
 
