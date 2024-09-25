@@ -6,7 +6,7 @@ Created on Tue Sep 17 12:06:42 2024
 @author: dimitra
 """
 SAMPLING_RATE = 16000
-N_FFT = 2048  
+N_FFT = 1024  
 N_MELS = 128  #number of Mel bands
 FRAME_LENGTH = 480
 HOP_LENGTH = FRAME_LENGTH // 2

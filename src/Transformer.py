@@ -16,10 +16,9 @@ import numpy as np
 
 class Transformer(nn.Module):
     def __init__(self, input_dim,max_len, nhead, num_layers, num_classes):
-        
         # Call the super class constructor.
         super(Transformer, self).__init__()
-        
+        # nn.Parameter()
         self.input_dim = input_dim  # Should match n_mels
         self.nhead = nhead
         self.num_layers = num_layers
@@ -30,7 +29,7 @@ class Transformer(nn.Module):
             nn.TransformerEncoderLayer(d_model=input_dim, nhead=nhead, batch_first=True),
             num_layers=num_layers
         )
-        
+               
         # Positional Encoding
         self.pos_encoder = PositionalEncoding(input_dim, max_len=max_len)
         
@@ -43,13 +42,12 @@ class Transformer(nn.Module):
         src = self.pos_encoder(src)
         
         # Transformer
-        output = self.transformer_encoder(src)
+        encoder_output = self.transformer_encoder(src)
         
         # Pooling (average over the time dimension)
-        output = output.mean(dim=0)
+        pooled_output = encoder_output[-1, :, :]  # Shape: (batch_size, input_dim)            
         
-        # Classification head
-        output = self.fc(output)
+        output = self.fc(pooled_output)
         
         output = self.sigmoid(output)
         

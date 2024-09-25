@@ -55,9 +55,7 @@ class GRUclassifier(nn.Module):
         print(f'RNN Accuracy: {accuracy.item() * 100:.2f}%')
         
         
-    def predict(self, mel_noisyspeech):
-        data_tensor = torch.from_numpy(mel_noisyspeech)
-        data_tensor = data_tensor.unsqueeze(0)
+    def predict(self, data_tensor):     
         predictions = self(data_tensor)
         predicted_classes = (predictions > 0.5).float()
         return predicted_classes
