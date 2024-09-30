@@ -16,11 +16,13 @@ Created on Fri Sep  6 16:06:37 2024
 
 from pathlib import Path
 from src.data_manipulation import create_dataset,combine_datasets,convert_to_mel
-from src.classifiers import train_svm,train_mlp,evaluate,train_rnn, train_transformer, to_tensor
+from src.classifiers import train_svm,train_mlp,evaluate,train_rnn, train_gru_with_attention, to_tensor
 from sklearn.model_selection import train_test_split
 from scipy.signal import medfilt
 from src.config import SAMPLING_RATE,FILTER_SIZE
 from src.audio import extract_clean_speech_intervals,extract_clean_speech
+from src.AudioDataset import AudioDataset
+from torch.utils.data import DataLoader
 import librosa
 import soundfile as sf
 import torch
@@ -35,7 +37,7 @@ if __name__=="__main__":
     X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size=0.2, random_state=42)
 
     print("Επιλέξτε μοντέλο: ")
-    print("SVM: 1, MLP:2 RNN:3 Transformer:4")
+    print("SVM: 1, MLP:2 RNN:3 Attention Mechanism:4")
 
     model= input()
     
@@ -70,17 +72,19 @@ if __name__=="__main__":
 
     if(model == '4'):
         #Transformer
-        transformer = train_transformer(X_train, Y_train)
-        test_data,test_labels= to_tensor(X_test, Y_test)
-        transformer.evaluate(test_data, test_labels, X_train.shape[0])
+        attention = train_gru_with_attention(X_train, Y_train)
+        test_dataset = AudioDataset(X_test, Y_test)    
+        dataloader = DataLoader(test_dataset, batch_size=4, shuffle=True, drop_last=True)
+
+        attention.evaluate(dataloader)
                 
         data_tensor = torch.from_numpy(mel_noisyspeech).float()
-        data_tensor = data_tensor.unsqueeze(0)        
-        predictions= transformer.predict(data_tensor, X_train.shape[0])
+        predict_loader= DataLoader(data_tensor, batch_size=4, shuffle=True, drop_last=True)
+        predictions= attention.predict(predict_loader)
         
     cleanspeech_intervals = extract_clean_speech_intervals(audio,predictions)
     cleanspeech, fundamental_frequency = extract_clean_speech(cleanspeech_intervals,audio)
     print(f'Fundamental Frequency: {fundamental_frequency} Hz')
-    sf.write('reconstructed_speech_transformer.wav', cleanspeech, SAMPLING_RATE)
+    sf.write('reconstructed_speech.wav', cleanspeech, SAMPLING_RATE)
     
 

@@ -11,9 +11,12 @@ from sklearn import metrics
 import time
 from src.GRUclassifier import GRUclassifier
 from src.Transformer import Transformer
+from src.GRUWithAttention import GRUWithAttention
+from src.AudioDataset import AudioDataset
 import torch
 import torch.nn as nn
 import torch.optim as optim
+from torch.utils.data import DataLoader
 import numpy as np
 
 
@@ -41,17 +44,24 @@ def train_rnn(X_train,Y_train):
     
     return rnn
 
-def train_transformer(X_train,Y_train):    
-    data_tensor, label_tensor = to_tensor(X_train, Y_train)    
+def train_gru_with_attention(X_train,Y_train):    
+    # data_tensor, label_tensor = to_tensor(X_train, Y_train)    
     
-    input_size = data_tensor.size(2) #every element has 128 NMels and thats the input size 
-    feature_dim= data_tensor.size(1)
+    dataset = AudioDataset(X_train, Y_train)    
     
-    transformer = Transformer(input_dim=input_size, max_len=feature_dim, nhead=8, num_layers=4, num_classes=1)    
+    batch_size = 4
+    input_size = dataset.mel_specs.size(1) #every element has 128 NMels and thats the input size 
+    hidden_size = 128 #Hyperparameter   
+    output_size = 1 #output for each element
+    num_layers = 2  #Hyperparameter
     
-    transformer.train_model(data_tensor, label_tensor)
+    dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True, drop_last=True)
     
-    return transformer
+    attentionmech = GRUWithAttention(input_size, hidden_size, output_size, num_layers, batch_size)
+    
+    attentionmech.train_model(dataloader)
+    
+    return attentionmech
     
 def evaluate(X_test,Y_test,classifier,label):
     start_time = time.time()
@@ -73,3 +83,4 @@ def to_tensor(X_train, Y_train):
     label_tensor = torch.from_numpy(Y_train).float()
     label_tensor = label_tensor.unsqueeze(1)    
     return data_tensor, label_tensor
+
