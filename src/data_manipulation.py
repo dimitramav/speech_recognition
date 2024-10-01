@@ -8,7 +8,7 @@ Created on Wed Sep 11 11:36:58 2024
 import librosa
 import librosa.display
 import numpy as np
-from src.config import SAMPLING_RATE,N_FFT,HOP_LENGTH,N_MELS
+from src.config import SAMPLING_RATE,N_FFT,HOP_LENGTH,N_MELS, N_FILES
 
 
 def convert_to_mel(audio):
@@ -33,7 +33,7 @@ def create_dataset(folder_path,label):
             target_labels.append(label)
             # Increment the file count and break if five files have been read
             file_count += 1
-            if file_count >= 5:
+            if file_count >= N_FILES:
                 break
     # Combine time_fragments into single matrix along the time axis. Shape of audio data is (n_time_frames, n_mel_bins=128)
     audio_data = np.vstack(audio_time_fragments)

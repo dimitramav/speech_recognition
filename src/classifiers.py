@@ -10,7 +10,6 @@ from sklearn.neural_network import MLPClassifier
 from sklearn import metrics
 import time
 from src.GRUclassifier import GRUclassifier
-from src.Transformer import Transformer
 from src.GRUWithAttention import GRUWithAttention
 from src.AudioDataset import AudioDataset
 import torch
@@ -32,12 +31,12 @@ def train_mlp(X_train,Y_train):
     return mlp
 
 def train_rnn(X_train,Y_train):
-    data_tensor, label_tensor = to_tensor(X_train, Y_train)
+    data_tensor, label_tensor = to_tensor(X_train, Y_train) #data_tensor= [1, n_samples, n_mels], label_tensor= [n_samples,1]
     
     input_size = data_tensor.size(2) #every element has 128 NMels and thats the input size 
-    hidden_size = 64 #Hyperparameter   
+    hidden_size = 128 #Hyperparameter   
     output_size = 1 #output for each element
-    num_layers = 2  #Hyperparameter
+    num_layers = 3  #Hyperparameter
     
     rnn= GRUclassifier(input_size, hidden_size, output_size, num_layers)
     rnn.train_model(data_tensor, label_tensor)
@@ -55,7 +54,7 @@ def train_gru_with_attention(X_train,Y_train):
     output_size = 1 #output for each element
     num_layers = 2  #Hyperparameter
     
-    dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True, drop_last=True)
+    dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True, drop_last=True) #batching the data
     
     attentionmech = GRUWithAttention(input_size, hidden_size, output_size, num_layers, batch_size)
     
@@ -78,9 +77,9 @@ def evaluate(X_test,Y_test,classifier,label):
 
 def to_tensor(X_train, Y_train):
     #batching my data to one single batch
-    data_tensor = torch.from_numpy(X_train).float()
-    data_tensor = data_tensor.unsqueeze(0)
+    data_tensor = torch.from_numpy(X_train).float() #converting to float tensor
+    data_tensor = data_tensor.unsqueeze(0) #[1, n_samples, n_mels]
     label_tensor = torch.from_numpy(Y_train).float()
-    label_tensor = label_tensor.unsqueeze(1)    
+    label_tensor = label_tensor.unsqueeze(1) #[n_samples,1]
     return data_tensor, label_tensor
 

@@ -7,6 +7,7 @@ Created on Sun Sep 22 15:33:06 2024
 import torch
 from torch.utils.data import Dataset
 
+#A class for combining my data and my labels
 class AudioDataset(Dataset):
     def __init__(self, mel_specs, labels):
         self.mel_specs = torch.from_numpy(mel_specs).float()      
